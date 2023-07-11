@@ -4,13 +4,13 @@ from .serializers import LendingSerializer, DevolutionSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from copies.models import Copies
-from django.shortcuts import get_object_or_404
 from datetime import date, timedelta
 from django.core.exceptions import PermissionDenied
-from django.http import JsonResponse
+from drf_spectacular.utils import extend_schema
 
 
 class LendingView(generics.ListCreateAPIView):
+   
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     lookup_url_kwarg = "pk"
@@ -25,7 +25,21 @@ class LendingView(generics.ListCreateAPIView):
         copies.amount -= 1
         copies.save()
         return serializer.save(user=self.request.user, copies=copies)
+    @extend_schema(
+        operation_id="lending_get",
+        description="Rota para listar todos os empréstimos de livros",
+        summary="Listar empréstimos"
 
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+    @extend_schema(
+        operation_id="lending_post",
+        description="Rota para criar empréstimos de livros",
+        summary="Criar empréstimos"
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
 
 class DevolutionView(generics.UpdateAPIView):
     authentication_classes = [JWTAuthentication]
@@ -36,30 +50,34 @@ class DevolutionView(generics.UpdateAPIView):
     queryset = Lending.objects.all()
 
     def perform_update(self, serializer):
-        lendings_data = Lending.objects.filter(user=self.request.user)
+        Lending_data = Lending.objects.filter(user=self.request.user)
 
         lending_id = self.kwargs["pk"]
-        # copy = get_object_or_404(Copies, id=copies_id)
-        # lending_instance = Lending.objects.filter(copies=copy)
-
-        lending_instance = Lending.objects.get(id=lending_id, user=self.request.user)
-
-        for i in lendings_data:
-            if not date.today() < i.expiration_date:
-                i.lending_acess = True
-                i.save()
+        lending_instance = Lending.objects.get(id=lending_id)
 
         block_date = date.today() + timedelta(days=lending_instance.lock_time)
+
+        for i in Lending_data:
+            print(i.avaliable)
+            if date.today() < i.expiration_date:
+                self.request.user.lending_acess = True
+                self.request.user.save()
+
         if date.today() < block_date:
             raise PermissionDenied()
 
         lending_instance.avaliable = False
         lending_instance.save()
 
-        # for j in lending_instance:
-        #     block_date = date.today() + timedelta(days=j.lock_time)
-        #     if date.today() < block_date:
-        #         raise PermissionDenied()
-
-        #     j.avaliable = False
-        #     j.save()
+    @extend_schema(
+        operation_id="devolution_patch",
+        description="Rota para devolver livros",
+        summary="Devolução de livros"
+    )
+    def patch(self, request, *args, **kwargs):
+        return super().patch(request, *args, **kwargs)
+    @extend_schema(
+        exclude=True
+    )
+    def put(self, request, *args, **kwargs):
+        return super().patch(request, *args, **kwargs)

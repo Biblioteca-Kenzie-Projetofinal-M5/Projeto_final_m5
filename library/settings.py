@@ -177,3 +177,8 @@ EMAIL_USE_TLS = True
 EMAIL_HOST = os.getenv("EMAIL_HOST")
 EMAIL_PORT = os.getenv("EMAIL_PORT")
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+SPECTACULAR_SETTINGS = {
+    "TITLE": "BiblioteKA",
+    "DESCRIPTION": "API para gerenciar cadastro de estudantes ou colaboradores, emprestimos de livros a estudantes, e cadastro de livros aos colaboradores"
+}

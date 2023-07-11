@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Copies
-from books.serializers import BookSerializer, BookCopiesSerializer
+from books.serializers import BookCopiesSerializer
 
 
 class CopiesSerializer(serializers.ModelSerializer):
@@ -9,14 +9,8 @@ class CopiesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Copies
         fields = ["id", "amount", "book"]
-        read_only_fields = ["id"]
+        read_only_fields = ["id","book"]
 
     def create(self, validated_data):
         return Copies.objects.create(**validated_data)
 
-    # def update(self, instance: Copies, validated_data):
-    #     for key, value in validated_data.items():
-    #         setattr(instance, key, value)
-
-    #     instance.save()
-    #     return instance
